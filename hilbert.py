@@ -66,13 +66,9 @@ class HilbertCurve:
     def mergepoints(h1, h2):
         return h1.points.concat(h2.points)
 
-#FIXME: figure out scaling issue
-# o   2  3
-# sm  3  3.3
 def makeHilbertGeneric(order, size):
     if(order == 1):
         return HilbertCurve(1, 1, False, False, np.array([[0,0],[0,1],[1,1],[1,0]]))
-    print("order", order, "")
 
     BL = makeHilbertGeneric(order - 1, 1)
     BL.scale = 1/2
@@ -94,7 +90,8 @@ def makeHilbertGeneric(order, size):
     BR = makeHilbertGeneric(order - 1, 1)
     BR.scale = 1/2
     BR.negflipxy = True
-    BR.start = np.array([1/2, 3/2])
+    #it just works, dont touch it
+    BR.start = np.array([(2**(order-1) - 1)/(2**(order-1)),((2**order - 1)/(2**(order - 1)))]) 
     BR.compile()
 
     blpoints = copy.deepcopy(BL.points)
@@ -111,10 +108,36 @@ def makeHilbertVarDense(tr_order, tl_order, br_order, bl_order, size):
     BR = makeHilbertGeneric(br_order, 1)
     BL = makeHilbertGeneric(bl_order, 1)
 
-    #WRITEME
+    order = max(tr_order,tl_order,br_order,bl_order)
+
+    BL.scale = 1/2
+    BL.flipxy = True
+    BL.start = np.array([0,0])
+    BL.compile()
+
+    TL.scale = 1/2
+    TL.start = np.array([1,0]) 
+    TL.compile()
+
+
+    TR.scale = 1/2
+    TR.start = np.array([1,1])
+    TR.compile()
+
+    BR.scale = 1/2
+    BR.negflipxy = True
+    #it just works, dont touch it
+    BR.start = np.array([(2**(order-1) - 1)/(2**(order-1)),((2**order - 1)/(2**(order - 1)))]) 
+    BR.compile()
+
+    blpoints = copy.deepcopy(BL.points)
+    outpoints = np.concatenate((np.concatenate((np.concatenate((blpoints,TL.points)),TR.points)),BR.points))
+    out = HilbertCurve(order, size, False, False, outpoints)
+    out.compile() #apply scale
+
     return out
 
-test = makeHilbertGeneric(2, 1)#makeHilbertVarDense(3,4,5,6, 1)
+test = makeHilbertVarDense(3,4,5,6, 1)
 print(test.points)
 xs = test.points[:,0]
 ys = test.points[:,1]
